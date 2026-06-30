@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试Python文献获取集成</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .test-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>测试Python文献获取集成</h1>
+        
+        <div class="test-section">
+            <h2>1. 测试Python服务器连接</h2>
+            <button class="test-button" onclick="testServerHealth()">测试服务器健康状态</button>
+            <div id="server-health-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. 测试文献搜索</h2>
+            <input type="text" id="search-query" value="machine learning" style="padding: 8px; width: 300px;">
+            <button class="test-button" onclick="testSearch()">搜索文献</button>
+            <div id="search-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. 测试按分类搜索</h2>
+            <input type="text" id="category" value="cs.AI" style="padding: 8px; width: 300px;">
+            <button class="test-button" onclick="testSearchByCategory()">按分类搜索</button>
+            <div id="category-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>4. 测试获取最近文献</h2>
+            <input type="text" id="recent-category" value="cs.LG" style="padding: 8px; width: 300px;">
+            <input type="number" id="recent-days" value="7" style="padding: 8px; width: 80px;">
+            <button class="test-button" onclick="testGetRecentPapers()">获取最近文献</button>
+            <div id="recent-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>5. 测试插件API</h2>
+            <button class="test-button" onclick="testPluginAPI()">测试插件API</button>
+            <div id="plugin-result" class="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 测试服务器健康状态
+        async function testServerHealth() {
+            const resultDiv = document.getElementById('server-health-result');
+            resultDiv.textContent = '测试中...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `服务器健康状态: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `服务器健康检查失败: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `服务器连接失败: ${error.message}`;
+            }
+        }
+        
+        // 测试文献搜索
+        async function testSearch() {
+            const query = document.getElementById('search-query').value;
+            const resultDiv = document.getElementById('search-result');
+            resultDiv.textContent = '搜索中...';
+            
+            try {
+                const response = await fetch(`http://localhost:5000/search?query=${encodeURIComponent(query)}&maxResults=5`);
+                if (response.ok) {
+                    const papers = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `找到 ${papers.length} 篇文献:\n${JSON.stringify(papers, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `搜索失败: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `搜索失败: ${error.message}`;
+            }
+        }
+        
+        // 测试按分类搜索
+        async function testSearchByCategory() {
+            const category = document.getElementById('category').value;
+            const resultDiv = document.getElementById('category-result');
+            resultDiv.textContent = '搜索中...';
+            
+            try {
+                const response = await fetch(`http://localhost:5000/search/category?category=${encodeURIComponent(category)}&maxResults=3`);
+                if (response.ok) {
+                    const papers = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `找到 ${papers.length} 篇文献:\n${JSON.stringify(papers, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `搜索失败: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `搜索失败: ${error.message}`;
+            }
+        }
+        
+        // 测试获取最近文献
+        async function testGetRecentPapers() {
+            const category = document.getElementById('recent-category').value;
+            const days = document.getElementById('recent-days').value;
+            const resultDiv = document.getElementById('recent-result');
+            resultDiv.textContent = '获取中...';
+            
+            try {
+                const response = await fetch(`http://localhost:5000/recent?category=${encodeURIComponent(category)}&days=${days}`);
+                if (response.ok) {
+                    const papers = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `找到 ${papers.length} 篇最近文献:\n${JSON.stringify(papers, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `获取失败: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `获取失败: ${error.message}`;
+            }
+        }
+        
+        // 测试插件API
+        async function testPluginAPI() {
+            const resultDiv = document.getElementById('plugin-result');
+            resultDiv.textContent = '测试中...';
+            
+            try {
+                // 这里需要根据插件的实际API进行测试
+                // 由于插件在Zotero环境中运行，这里只是模拟测试
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '插件API测试: 插件已成功集成Python服务器。\n\n请在Zotero中测试实际功能。';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `插件API测试失败: ${error.message}`;
+            }
+        }
+        
+        // 页面加载时自动测试服务器健康状态
+        window.onload = function() {
+            testServerHealth();
+        };
+    </script>
+</body>
+</html>

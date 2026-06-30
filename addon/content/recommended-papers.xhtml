@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:html="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8"/>
+  <title>推荐文献</title>
+  <link rel="stylesheet" href="chrome://global/skin/"/>
+  <link rel="stylesheet" href="chrome://zotero/skin/zotero.css"/>
+  <style type="text/css">
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 24px; background: #f5f6f8; }
+    .papers-root { max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); min-height: 400px; }
+    .papers-title { font-size: 18px; font-weight: bold; color: #1a1a2e; margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 2px solid #e8eaed; }
+    .papers-subtitle { font-size: 13px; color: #6b7280; margin: -8px 0 16px 0; }
+    .btn-close { padding: 8px 18px; font-size: 13px; font-weight: 500; color: #fff; background: linear-gradient(135deg, #4a5a9e 0%, #3d4a82 100%); border: none; border-radius: 8px; cursor: pointer; float: right; margin-top: -40px; }
+    .btn-close:hover { opacity: 0.92; }
+    .papers-list { margin-top: 16px; }
+    .paper-item { background: #fafbfc; border: 1px solid #e8eaed; border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
+    .paper-item:hover { border-color: #d1d5db; }
+    .paper-title { font-size: 15px; font-weight: bold; color: #1a1a2e; margin: 0 0 8px 0; line-height: 1.4; }
+    .paper-meta { font-size: 13px; color: #4b5563; margin-bottom: 4px; }
+    .paper-source { font-size: 12px; color: #9ca3af; margin-bottom: 12px; }
+    .paper-summary-box { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e8eaed; }
+    .paper-summary-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
+    .paper-summary-text { font-size: 13px; color: #4b5563; line-height: 1.5; }
+    .paper-summary-loading { font-size: 13px; color: #9ca3af; font-style: italic; }
+    .paper-summary-none { font-size: 13px; color: #9ca3af; }
+    .paper-actions { margin-top: 12px; }
+    .btn-open { padding: 6px 14px; font-size: 12px; font-weight: 500; color: #fff; background: linear-gradient(135deg, #4a5a9e 0%, #3d4a82 100%); border: none; border-radius: 6px; cursor: pointer; }
+    .btn-open:hover { opacity: 0.92; }
+    .papers-empty { text-align: center; padding: 48px 24px; color: #6b7280; font-size: 15px; }
+    .papers-relaxed-notice { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #92400e; }
+  </style>
+</head>
+<body>
+  <div class="papers-root">
+    <h1 class="papers-title">推荐文献</h1>
+    <p class="papers-subtitle">为您推荐的相关文献</p>
+    <div id="papers-relaxed-notice" class="papers-relaxed-notice" style="display: none;"></div>
+    <button type="button" class="btn-close" onclick="window.close();">关闭</button>
+    <div id="papers-container" class="papers-list"></div>
+  </div>
+
+  <script type="application/javascript">
+  (function() {
+    function getPaperPageUrl(paper) {
+      if (paper.id) return "https://arxiv.org/abs/" + String(paper.id);
+      if (paper.pdfUrl) return paper.pdfUrl;
+      if (paper.pdf_url) return paper.pdf_url;
+      if (paper.url) return paper.url;
+      return null;
+    }
+
+    function openPaperInBrowser(url) {
+      if (!url) return;
+      try {
+        if (window.opener &amp;&amp; window.opener.Zotero &amp;&amp; typeof window.opener.Zotero.launchURL === "function") {
+          window.opener.Zotero.launchURL(url);
+        } else {
+          window.open(url, "_blank");
+        }
+      } catch (e) {
+        window.open(url, "_blank");
+      }
+    }
+
+    function setSummary(el, state, text) {
+      el.className = "paper-summary-text";
+      if (state === "loading") {
+        el.className = "paper-summary-loading";
+        el.textContent = "加载中...";
+      } else if (state === "none") {
+        el.className = "paper-summary-none";
+        el.textContent = text || "需要配置大模型";
+      } else {
+        el.textContent = text || "";
+      }
+    }
+
+    function addPaperCard(container, paper, index) {
+      var card = document.createElement("div");
+      card.className = "paper-item";
+
+      var title = document.createElement("div");
+      title.className = "paper-title";
+      title.textContent = (index + 1) + ". " + (paper.title || "无标题");
+      card.appendChild(title);
+
+      var authors = (paper.authors &amp;&amp; paper.authors.length) ? paper.authors.join(", ") : "未知";
+      var meta = document.createElement("div");
+      meta.className = "paper-meta";
+      meta.textContent = "作者：" + authors;
+      card.appendChild(meta);
+
+      var src = document.createElement("div");
+      src.className = "paper-source";
+      src.textContent = paper.published ? ("来源：arXiv · " + new Date(paper.published).toLocaleDateString()) : "来源：arXiv";
+      card.appendChild(src);
+
+      var summaryBox = document.createElement("div");
+      summaryBox.className = "paper-summary-box";
+      var summaryLabel = document.createElement("span");
+      summaryLabel.className = "paper-summary-label";
+      summaryLabel.textContent = "内容概括";
+      summaryBox.appendChild(summaryLabel);
+      var summaryText = document.createElement("div");
+      setSummary(summaryText, "loading", null);
+      summaryBox.appendChild(summaryText);
+      card.appendChild(summaryBox);
+
+      var actions = document.createElement("div");
+      actions.className = "paper-actions";
+      var pageUrl = getPaperPageUrl(paper);
+      if (pageUrl) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-open";
+        btn.textContent = "在浏览器中打开";
+        btn.onclick = function() { openPaperInBrowser(pageUrl); };
+        actions.appendChild(btn);
+      }
+      card.appendChild(actions);
+
+      container.appendChild(card);
+
+      var getSummary = (typeof window.getPaperSummary === "function") ? window.getPaperSummary : (window.opener &amp;&amp; window.opener.Zotero &amp;&amp; window.opener.Zotero.LiteratureTracker &amp;&amp; typeof window.opener.Zotero.LiteratureTracker.getPaperSummary === "function") ? window.opener.Zotero.LiteratureTracker.getPaperSummary.bind(window.opener.Zotero.LiteratureTracker) : null;
+      if (getSummary) {
+        var payload = { title: paper.title, abstract: paper.abstract || paper.summary, id: paper.id };
+        getSummary(payload).then(function(result) {
+          setSummary(summaryText, result ? "done" : "none", result || "需要配置大模型");
+        }).catch(function() {
+          setSummary(summaryText, "none", "概括生成失败");
+        });
+      } else {
+        setSummary(summaryText, "none", "需要配置大模型");
+      }
+    }
+
+    function displayRecommendedPapers() {
+      var container = document.getElementById("papers-container");
+      var papers = window.recommendedPapers || [];
+      var relaxedNotice = document.getElementById("papers-relaxed-notice");
+      var relaxedLabel = (typeof window.recommendedPapersRelaxedLabel !== "undefined" &amp;&amp; window.recommendedPapersRelaxedLabel) ? String(window.recommendedPapersRelaxedLabel) : "";
+      if (relaxedNotice) {
+        if (relaxedLabel) {
+          relaxedNotice.textContent = relaxedLabel;
+          relaxedNotice.style.display = "block";
+        } else {
+          relaxedNotice.style.display = "none";
+        }
+      }
+
+      container.innerHTML = "";
+
+      if (papers.length === 0) {
+        var empty = document.createElement("p");
+        empty.className = "papers-empty";
+        empty.textContent = "暂无推荐文献。";
+        container.appendChild(empty);
+        return;
+      }
+
+      for (var i = 0; i &lt; papers.length; i++) {
+        addPaperCard(container, papers[i], i);
+      }
+    }
+
+    window.displayRecommendedPapers = displayRecommendedPapers;
+    window.addEventListener("load", function() { displayRecommendedPapers(); }, { once: true });
+  })();
+  </script>
+</body>
+</html>

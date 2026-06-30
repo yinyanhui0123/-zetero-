@@ -1,0 +1,12 @@
+pref-title = 文献追踪与推送
+pref-api-section = API设置
+pref-openai-key = OpenAI API密钥
+pref-claude-key = Claude API密钥
+pref-website-section = 追踪网站
+pref-track-arxiv = 追踪arXiv
+pref-track-pubmed = 追踪PubMed
+pref-threshold-section = 相关度设置
+pref-threshold = 相关度阈值
+pref-shortcut-section = 快捷键设置
+pref-shortcut = 激活键
+pref-help = { $name } 构建 { $version } { $time }

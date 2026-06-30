@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:html="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8"/>
+  <title>文献追踪 设置</title>
+  <link rel="stylesheet" href="chrome://global/skin/"/>
+  <link rel="stylesheet" href="chrome://zotero/skin/zotero.css"/>
+  <style type="text/css">
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 24px; background: #f5f6f8; }
+    .prefs-box { max-width: 560px; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .prefs-title { font-size: 18px; font-weight: bold; color: #1a1a2e; margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 2px solid #e8eaed; }
+    .prefs-row { margin-bottom: 16px; }
+    .prefs-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .prefs-input { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .prefs-input:focus { outline: none; border-color: #4a5a9e; box-shadow: 0 0 0 2px rgba(74, 90, 158, 0.2); }
+    .prefs-hint { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .btn-save { padding: 10px 24px; font-size: 14px; font-weight: 500; color: #fff; background: linear-gradient(135deg, #4a5a9e 0%, #3d4a82 100%); border: none; border-radius: 8px; cursor: pointer; margin-top: 8px; margin-right: 8px; }
+    .btn-save:hover { opacity: 0.92; }
+    .btn-verify { padding: 10px 20px; font-size: 13px; font-weight: 500; color: #4a5a9e; background: #fff; border: 1px solid #4a5a9e; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+    .btn-verify:hover { background: #f0f2ff; }
+    .prefs-check-row { display: flex; align-items: center; gap: 8px; margin: 4px 0 16px 0; }
+    .prefs-check-row input { margin: 0; }
+    .prefs-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div class="prefs-box">
+    <h1 class="prefs-title">文献追踪 设置</h1>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="api-provider">API 提供商</label>
+      <select id="api-provider" class="prefs-input" style="width: 100%; max-width: 100%;">
+        <option value="deepseek">DeepSeek（国内推荐，api.deepseek.com）</option>
+        <option value="openai">OpenAI（api.openai.com）</option>
+      </select>
+      <div class="prefs-hint">DeepSeek 使用 DeepSeek API 密钥，国内网络更易访问。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="api-key">大模型 API 密钥</label>
+      <input type="password" id="api-key" class="prefs-input" placeholder="DeepSeek 或 OpenAI 的 API 密钥"/>
+      <div class="prefs-hint">用于文献概括与相关功能，请勿泄露。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="profile-mode">用户画像模式</label>
+      <select id="profile-mode" class="prefs-input" style="width: 100%; max-width: 100%;">
+        <option value="keyword">关键词（推荐，秒级构建，无需 API）</option>
+        <option value="vector">向量（更准，需 API，构建较慢）</option>
+      </select>
+      <div class="prefs-hint">关键词模式从文献标题与摘要提取词频，推荐时按匹配度排序；向量模式需调用大模型生成向量。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="shortcut-key">快捷键</label>
+      <input type="text" id="shortcut-key" class="prefs-input" placeholder="默认为空格" maxlength="1"/>
+      <div class="prefs-hint">按下该键可触发文献追踪，建议使用空格或单个字母。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="python-server-start">文献服务自动启动</label>
+      <input type="text" id="python-server-start" class="prefs-input" placeholder="留空则不自动启动；填 start-server.bat 的完整路径可自动启动"/>
+      <div class="prefs-hint">检索文献前会检查 localhost:5000；若未运行且此处已填路径，将自动执行该脚本（如 D:\...\start-server.bat）。</div>
+    </div>
+
+    <label class="prefs-check-row">
+      <input type="checkbox" id="enable-daily-push"/>
+      <span class="prefs-label" style="margin: 0;">启动 Zotero 后每天自动推送一次</span>
+    </label>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="categories">arXiv 分类</label>
+      <input type="text" id="categories" class="prefs-input" placeholder="例如：cs.AI, cs.LG, cs.CL"/>
+      <div class="prefs-hint">逗号分隔。为空时默认追踪 cs.AI 与 cs.LG。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="keywords">关键词</label>
+      <input type="text" id="keywords" class="prefs-input" placeholder="例如：agent, diffusion, retrieval augmented generation"/>
+      <div class="prefs-hint">逗号分隔。会额外按关键词检索并纳入推荐排序。</div>
+    </div>
+
+    <div class="prefs-row">
+      <label class="prefs-label" for="authors">作者</label>
+      <input type="text" id="authors" class="prefs-input" placeholder="例如：Yoshua Bengio, Geoffrey Hinton"/>
+      <div class="prefs-hint">逗号分隔。用于关注指定作者的新论文。</div>
+    </div>
+
+    <div class="prefs-inline">
+      <div class="prefs-row">
+        <label class="prefs-label" for="max-results">最大检索数量</label>
+        <input type="number" id="max-results" class="prefs-input" min="1" max="200" step="1"/>
+      </div>
+      <div class="prefs-row">
+        <label class="prefs-label" for="relevance-threshold">相关度阈值</label>
+        <input type="number" id="relevance-threshold" class="prefs-input" min="0" max="1" step="0.05"/>
+      </div>
+    </div>
+
+    <div class="prefs-row">
+      <button type="button" id="verify-api-key" class="btn-verify">验证 API 密钥</button>
+      <button type="button" id="save-prefs" class="btn-save">保存设置</button>
+    </div>
+  </div>
+
+  <script type="application/javascript">
+  (function() {
+    var PREFIX = "extensions.zotero.literature-tracker";
+    var Zotero = (window.opener &amp;&amp; window.opener.Zotero) ? window.opener.Zotero : (typeof Zotero !== "undefined" ? Zotero : null);
+
+    function getPref(key, def) {
+      if (!Zotero || !Zotero.Prefs) return def;
+      try {
+        var v = Zotero.Prefs.get(PREFIX + "." + key, true);
+        return v !== undefined &amp;&amp; v !== null ? v : def;
+      } catch (e) {
+        return def;
+      }
+    }
+
+    function setPref(key, value) {
+      if (!Zotero || !Zotero.Prefs) throw new Error("Zotero 未就绪，请从 Zotero 主窗口的菜单打开设置。");
+      Zotero.Prefs.set(PREFIX + "." + key, value, true);
+    }
+
+    function getApiProviderPref() {
+      var v = getPref("apiProvider", "deepseek");
+      return (v === "openai" || v === "deepseek") ? v : "deepseek";
+    }
+
+    function getAddon() {
+      return (window.opener &amp;&amp; window.opener.Zotero &amp;&amp; window.opener.Zotero.LiteratureTracker) ? window.opener.Zotero.LiteratureTracker : null;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      var apiProviderSelect = document.getElementById("api-provider");
+      var apiKeyInput = document.getElementById("api-key");
+      var profileModeSelect = document.getElementById("profile-mode");
+      var shortcutInput = document.getElementById("shortcut-key");
+      var pythonServerStartInput = document.getElementById("python-server-start");
+      var enableDailyPushInput = document.getElementById("enable-daily-push");
+      var categoriesInput = document.getElementById("categories");
+      var keywordsInput = document.getElementById("keywords");
+      var authorsInput = document.getElementById("authors");
+      var maxResultsInput = document.getElementById("max-results");
+      var relevanceThresholdInput = document.getElementById("relevance-threshold");
+      var saveBtn = document.getElementById("save-prefs");
+      var verifyBtn = document.getElementById("verify-api-key");
+
+      apiProviderSelect.value = getApiProviderPref();
+      var profileMode = getPref("profileMode", "keyword");
+      profileModeSelect.value = (profileMode === "vector" ? "vector" : "keyword");
+      pythonServerStartInput.value = getPref("pythonServerStartCommand", "") || "";
+      enableDailyPushInput.checked = getPref("enableDailyPush", true) !== false;
+      categoriesInput.value = getPref("categories", "cs.AI, cs.LG") || "";
+      keywordsInput.value = getPref("keywords", "") || "";
+      authorsInput.value = getPref("authors", "") || "";
+      maxResultsInput.value = String(getPref("maxResults", 50) || 50);
+      relevanceThresholdInput.value = String(getPref("relevanceThreshold", 0.7) || 0.7);
+      var apiVal = getPref("apiKey", "") || "";
+      if (!apiVal) {
+        var legacy = getPref("openaiKey", "") || "";
+        if (legacy) apiVal = legacy;
+      }
+      apiKeyInput.value = apiVal;
+      shortcutInput.value = getPref("shortcutKey", " ") || " ";
+
+      verifyBtn.addEventListener("click", function() {
+        var key = (apiKeyInput.value || "").trim();
+        if (!key) {
+          alert("请先输入 API 密钥再验证。");
+          return;
+        }
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = "验证中...";
+        var addon = getAddon();
+        if (!addon || typeof addon.verifyApiKey !== "function") {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = "验证 API 密钥";
+          alert("无法连接插件，请从 Zotero 主窗口「工具 → 文献追踪 → 设置」打开本设置页后重试。");
+          return;
+        }
+        addon.verifyApiKey(key).then(function(r) {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = "验证 API 密钥";
+          alert(r.ok ? "API 密钥有效。" : ("验证失败：\n" + r.message));
+        }).catch(function(e) {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = "验证 API 密钥";
+          alert("验证出错：" + (e &amp;&amp; e.message ? e.message : String(e)));
+        });
+      });
+
+      saveBtn.addEventListener("click", function() {
+        try {
+          if (!Zotero || !Zotero.Prefs) {
+            alert("保存失败：Zotero 未就绪。请从 Zotero 主窗口「工具 → 文献追踪 → 设置」打开设置后再保存。");
+            return;
+          }
+          var key = (apiKeyInput.value || "").trim();
+          var shortcut = (shortcutInput.value || " ").trim() || " ";
+          var provider = apiProviderSelect.value === "openai" ? "openai" : "deepseek";
+          var profileMode = profileModeSelect.value === "vector" ? "vector" : "keyword";
+          var pythonStart = (pythonServerStartInput.value || "").trim();
+          var maxResults = parseInt(maxResultsInput.value || "50", 10);
+          var threshold = parseFloat(relevanceThresholdInput.value || "0.7");
+          setPref("apiProvider", provider);
+          setPref("apiKey", key);
+          setPref("profileMode", profileMode);
+          setPref("shortcutKey", shortcut);
+          setPref("pythonServerStartCommand", pythonStart);
+          setPref("enableDailyPush", !!enableDailyPushInput.checked);
+          setPref("categories", (categoriesInput.value || "").trim());
+          setPref("keywords", (keywordsInput.value || "").trim());
+          setPref("authors", (authorsInput.value || "").trim());
+          setPref("maxResults", isFinite(maxResults) ? Math.max(1, Math.min(200, maxResults)) : 50);
+          setPref("relevanceThreshold", isFinite(threshold) ? Math.max(0, Math.min(1, threshold)) : 0.7);
+          alert("设置已保存。若修改了 API 密钥或快捷键，建议重启 Zotero 后生效。");
+          window.close();
+        } catch (e) {
+          alert("保存失败：" + (e &amp;&amp; e.message ? e.message : String(e)));
+        }
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literature Tracker Plugin Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 5px;
+        }
+        .error {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ffebee;
+            border-radius: 5px;
+            color: #c62828;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            color: #1565c0;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .log {
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature-card h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-ready {
+            background-color: #4CAF50;
+        }
+        .status-error {
+            background-color: #f44336;
+        }
+        .status-loading {
+            background-color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Literature Tracker Plugin Test</h1>
+        
+        <div class="section">
+            <h2>Plugin Status</h2>
+            <div id="status-container">
+                <p><span class="status-indicator status-loading"></span> Checking plugin status...</p>
+            </div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>User Profile</h3>
+                <button class="button" onclick="buildUserProfile()">Build User Profile</button>
+                <button class="button" onclick="getUserProfile()">Get User Profile</button>
+                <div id="profile-result"></div>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Paper Push</h3>
+                <button class="button" onclick="pushTodayPapers()">Push Today's Papers</button>
+                <button class="button" onclick="checkPushStatus()">Check Push Status</button>
+                <div id="push-result"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Debug Log</h2>
+            <div id="debug-log" class="log"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 模拟插件状态
+        let pluginStatus = {
+            initialized: false,
+            components: {
+                literatureReader: false,
+                vectorStore: false,
+                vectorGenerator: false,
+                literatureTrackingService: false,
+                userProfileManager: false
+            }
+        };
+        
+        // 模拟用户画像数据
+        const mockUserProfile = {
+            id: "default",
+            interestVector: Array(10).fill(0).map(() => (Math.random() * 2 - 1).toFixed(4)),
+            coreThemes: [
+                { theme: "Artificial Intelligence", weight: 0.85 },
+                { theme: "Machine Learning", weight: 0.78 },
+                { theme: "Natural Language Processing", weight: 0.65 },
+                { theme: "Computer Vision", weight: 0.45 }
+            ],
+            keywords: [
+                { keyword: "neural networks", weight: 15 },
+                { keyword: "deep learning", weight: 12 },
+                { keyword: "nlp", weight: 10 },
+                { keyword: "transformers", weight: 8 },
+                { keyword: "computer vision", weight: 6 }
+            ],
+            interestDistribution: {
+                "Artificial Intelligence": 0.85,
+                "Machine Learning": 0.78,
+                "Natural Language Processing": 0.65,
+                "Computer Vision": 0.45
+            },
+            lastUpdated: Date.now()
+        };
+        
+        // 模拟今日文献数据
+        const mockTodayPapers = [
+            {
+                id: "2602.13823",
+                title: "Advances in Large Language Models",
+                summary: "This paper discusses recent advances in large language models and their applications.",
+                authors: ["John Doe", "Jane Smith"],
+                published: new Date().toISOString(),
+                pdf_url: "https://arxiv.org/pdf/2602.13823",
+                doi: "10.1234/arxiv.2602.13823"
+            },
+            {
+                id: "2602.13824",
+                title: "Machine Learning for Healthcare",
+                summary: "This paper explores the use of machine learning techniques in healthcare applications.",
+                authors: ["Alice Johnson", "Bob Brown"],
+                published: new Date().toISOString(),
+                pdf_url: "https://arxiv.org/pdf/2602.13824",
+                doi: "10.1234/arxiv.2602.13824"
+            }
+        ];
+        
+        // 日志函数
+        function log(message) {
+            const logElement = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // 显示状态
+        function updateStatus() {
+            const statusContainer = document.getElementById('status-container');
+            
+            // 模拟插件初始化
+            setTimeout(() => {
+                pluginStatus.initialized = true;
+                pluginStatus.components = {
+                    literatureReader: true,
+                    vectorStore: true,
+                    vectorGenerator: true,
+                    literatureTrackingService: true,
+                    userProfileManager: true
+                };
+                
+                let statusHTML = '<h3>Plugin Components Status</h3><ul>';
+                for (const [component, status] of Object.entries(pluginStatus.components)) {
+                    const statusClass = status ? 'status-ready' : 'status-error';
+                    const statusText = status ? 'Ready' : 'Error';
+                    statusHTML += `<li><span class="status-indicator ${statusClass}"></span>${component}: ${statusText}</li>`;
+                }
+                statusHTML += '</ul>';
+                
+                statusContainer.innerHTML = statusHTML;
+                log('Plugin initialized successfully');
+            }, 1000);
+        }
+        
+        // 显示加载状态
+        function showLoading(button) {
+            const originalText = button.textContent;
+            button.innerHTML = '<div class="loading"></div> Loading...';
+            button.disabled = true;
+            return originalText;
+        }
+        
+        // 隐藏加载状态
+        function hideLoading(button, originalText) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+        
+        // 构建用户画像
+        function buildUserProfile() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultElement = document.getElementById('profile-result');
+            
+            // 模拟API调用
+            setTimeout(() => {
+                resultElement.innerHTML = `
+                    <div class="result">
+                        <h4>User Profile Built Successfully!</h4>
+                        <p>Profile ID: ${mockUserProfile.id}</p>
+                        <p>Last Updated: ${new Date(mockUserProfile.lastUpdated).toLocaleString()}</p>
+                        <p>Core Themes: ${mockUserProfile.coreThemes.length}</p>
+                        <p>Keywords: ${mockUserProfile.keywords.length}</p>
+                    </div>
+                `;
+                log('User profile built successfully');
+                hideLoading(button, originalText);
+            }, 2000);
+        }
+        
+        // 获取用户画像
+        function getUserProfile() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultElement = document.getElementById('profile-result');
+            
+            // 模拟API调用
+            setTimeout(() => {
+                resultElement.innerHTML = `
+                    <div class="result">
+                        <h4>User Profile</h4>
+                        <p>Profile ID: ${mockUserProfile.id}</p>
+                        <p>Last Updated: ${new Date(mockUserProfile.lastUpdated).toLocaleString()}</p>
+                        
+                        <h5>Core Themes:</h5>
+                        <ul>
+                            ${mockUserProfile.coreThemes.map(theme => `
+                                <li>${theme.theme}: ${(theme.weight * 100).toFixed(1)}%</li>
+                            `).join('')}
+                        </ul>
+                        
+                        <h5>Top Keywords:</h5>
+                        <ul>
+                            ${mockUserProfile.keywords.map(keyword => `
+                                <li>${keyword.keyword}: ${keyword.weight}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                log('User profile retrieved successfully');
+                hideLoading(button, originalText);
+            }, 2000);
+        }
+        
+        // 推送今日文献
+        function pushTodayPapers() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultElement = document.getElementById('push-result');
+            
+            // 模拟API调用
+            setTimeout(() => {
+                resultElement.innerHTML = `
+                    <div class="result">
+                        <h4>Today's Papers Pushed Successfully!</h4>
+                        <p>Found ${mockTodayPapers.length} relevant papers</p>
+                        <ul>
+                            ${mockTodayPapers.map(paper => `
+                                <li><a href="${paper.pdf_url}" target="_blank">${paper.title}</a> - ${paper.authors.join(', ')}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                log(`Pushed ${mockTodayPapers.length} relevant papers`);
+                hideLoading(button, originalText);
+            }, 2000);
+        }
+        
+        // 检查推送状态
+        function checkPushStatus() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultElement = document.getElementById('push-result');
+            
+            // 模拟API调用
+            setTimeout(() => {
+                const lastPushDate = new Date();
+                resultElement.innerHTML = `
+                    <div class="info">
+                        <h4>Push Status</h4>
+                        <p>Last Push: ${lastPushDate.toLocaleString()}</p>
+                        <p>Status: Today's papers have been pushed</p>
+                    </div>
+                `;
+                log('Push status checked');
+                hideLoading(button, originalText);
+            }, 1000);
+        }
+        
+        // 初始化
+        window.onload = function() {
+            log('Test page loaded');
+            updateStatus();
+        };
+    </script>
+</body>
+</html>

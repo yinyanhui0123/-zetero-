@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arXiv API 测试（JSONP方式）</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .test-section h3 {
+      color: #007bff;
+      margin-top: 0;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    input,
+    select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+    }
+
+    .error {
+      border-left-color: #dc3545;
+      background-color: #f8d7da;
+    }
+
+    .success {
+      border-left-color: #28a745;
+      background-color: #d4edda;
+    }
+
+    .paper-item {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .paper-title {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .paper-meta {
+      color: #666;
+      font-size: 12px;
+      margin: 5px 0;
+    }
+
+    .paper-abstract {
+      color: #555;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .loading {
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(5, end) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60%,
+      100% {
+        content: '...';
+      }
+    }
+
+    .info-box {
+      background-color: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .info-box h4 {
+      margin-top: 0;
+      color: #856404;
+    }
+
+    .info-box p {
+      margin: 5px 0;
+      color: #856404;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>arXiv API 测试工具</h1>
+
+    <div class="info-box">
+      <h4>ℹ️ 重要提示</h4>
+      <p>由于浏览器的CORS安全策略，直接在浏览器中测试arXiv API可能会失败。</p>
+      <p><strong>推荐方法：</strong>直接在Zotero中测试插件功能，因为Zotero环境没有CORS限制。</p>
+      <p>如果你想在浏览器中测试，可以使用以下方法：</p>
+      <ul>
+        <li>方法1：使用curl命令行工具</li>
+        <li>方法2：在Zotero错误控制台中测试</li>
+        <li>方法3：使用Node.js脚本测试</li>
+      </ul>
+    </div>
+
+    <!-- 方法1：curl命令 -->
+    <div class="test-section">
+      <h3>方法1：使用curl命令测试（推荐）</h3>
+      <p>在终端中运行以下命令：</p>
+      <pre style="background-color: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto;">
+curl "http://export.arxiv.org/api/query?search_query=all:machine%20learning&max_results=5"</pre>
+      <button onclick="copyCurlCommand()">复制命令</button>
+      <div id="curl-result" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 方法2：Zotero控制台 -->
+    <div class="test-section">
+      <h3>方法2：在Zotero错误控制台中测试（推荐）</h3>
+      <p>在Zotero中打开错误控制台（工具 > 开发者工具 > 错误控制台），然后输入以下代码：</p>
+      <pre style="background-color: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; max-height: 200px;">
+// 测试arXiv API
+fetch('http://export.arxiv.org/api/query?search_query=all:machine%20learning&max_results=5')
+  .then(response => response.text())
+  .then(xml => {
+    console.log('成功获取XML:');
+    console.log(xml);
+    
+    // 解析XML
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xml, 'text/xml');
+    const entries = xmlDoc.getElementsByTagName('entry');
+    console.log(`找到 ${entries.length} 篇文献`);
+    
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const title = entry.getElementsByTagName('title')[0]?.textContent;
+      const id = entry.getElementsByTagName('id')[0]?.textContent;
+      console.log(`\n文献 ${i + 1}:`);
+      console.log(`  标题: ${title}`);
+      console.log(`  ID: ${id}`);
+    }
+  })
+  .catch(error => {
+    console.error('错误:', error);
+  });</pre>
+      <button onclick="copyZoteroCode()">复制代码</button>
+    </div>
+
+    <!-- 方法3：Node.js测试 -->
+    <div class="test-section">
+      <h3>方法3：使用Node.js脚本测试</h3>
+      <p>创建一个测试脚本并运行：</p>
+      <pre style="background-color: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; max-height: 200px;">
+const http = require('http');
+
+const query = 'all:machine learning';
+const maxResults = 5;
+const url = `http://export.arxiv.org/api/query?search_query=${encodeURIComponent(query)}&max_results=${maxResults}`;
+
+http.get(url, (res) => {
+  let data = '';
+  res.on('data', (chunk) => {
+    data += chunk;
+  });
+  res.on('end', () => {
+    console.log('成功获取XML:');
+    console.log(data.substring(0, 1000) + '...');
+  });
+}).on('error', (err) => {
+  console.error('错误:', err.message);
+});</pre>
+      <button onclick="copyNodeCode()">复制代码</button>
+    </div>
+
+    <!-- 直接在浏览器中尝试（使用代理） -->
+    <div class="test-section">
+      <h3>方法4：使用CORS代理测试（可能不稳定）</h3>
+      <p>使用公共CORS代理来绕过浏览器限制：</p>
+      <input type="text" id="proxy-search-query" placeholder="输入关键词，例如：machine learning" value="machine learning"
+        style="width: 300px;">
+      <input type="number" id="proxy-search-max" placeholder="最大结果数" value="5" min="1" max="100" style="width: 80px;">
+      <button onclick="testWithProxy()">通过代理搜索</button>
+      <div id="proxy-result" class="result" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    function copyCurlCommand() {
+      const command = 'curl "http://export.arxiv.org/api/query?search_query=all:machine%20learning&max_results=5"';
+      navigator.clipboard.writeText(command).then(() => {
+        alert('命令已复制到剪贴板！\n\n在终端中粘贴并运行此命令。');
+      }).catch(err => {
+        console.error('复制失败:', err);
+        alert('复制失败，请手动复制命令。');
+      });
+    }
+
+    function copyZoteroCode() {
+      const code = `// 测试arXiv API
+fetch('http://export.arxiv.org/api/query?search_query=all:machine%20learning&max_results=5')
+  .then(response => response.text())
+  .then(xml => {
+    console.log('成功获取XML:');
+    console.log(xml);
+    
+    // 解析XML
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xml, 'text/xml');
+    const entries = xmlDoc.getElementsByTagName('entry');
+    console.log(\`找到 \${entries.length} 篇文献\`);
+    
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const title = entry.getElementsByTagName('title')[0]?.textContent;
+      const id = entry.getElementsByTagName('id')[0]?.textContent;
+      console.log(\`\\n文献 \${i + 1}:\`);
+      console.log(\`  标题: \${title}\`);
+      console.log(\`  ID: \${id}\`);
+    }
+  })
+  .catch(error => {
+    console.error('错误:', error);
+  });`;
+
+      navigator.clipboard.writeText(code).then(() => {
+        alert('代码已复制到剪贴板！\n\n在Zotero错误控制台中粘贴并运行此代码。');
+      }).catch(err => {
+        console.error('复制失败:', err);
+        alert('复制失败，请手动复制代码。');
+      });
+    }
+
+    function copyNodeCode() {
+      const code = `const http = require('http');
+
+const query = 'all:machine learning';
+const maxResults = 5;
+const url = \`http://export.arxiv.org/api/query?search_query=\${encodeURIComponent(query)}&max_results=\${maxResults}\`;
+
+http.get(url, (res) => {
+  let data = '';
+  res.on('data', (chunk) => {
+    data += chunk;
+  });
+  res.on('end', () => {
+    console.log('成功获取XML:');
+    console.log(data.substring(0, 1000) + '...');
+  });
+}).on('error', (err) => {
+  console.error('错误:', err.message);
+});`;
+
+      navigator.clipboard.writeText(code).then(() => {
+        alert('代码已复制到剪贴板！\n\n保存为test-arxiv.js文件，然后运行: node test-arxiv.js');
+      }).catch(err => {
+        console.error('复制失败:', err);
+        alert('复制失败，请手动复制代码。');
+      });
+    }
+
+    async function testWithProxy() {
+      const query = document.getElementById('proxy-search-query').value;
+      const maxResults = document.getElementById('proxy-search-max').value;
+      const resultDiv = document.getElementById('proxy-result');
+
+      resultDiv.style.display = 'block';
+      resultDiv.className = 'result';
+      resultDiv.innerHTML = '<p>通过代理搜索中<span class="loading"></span></p>';
+
+      try {
+        // 使用CORS代理
+        const proxyUrl = 'https://corsproxy.io/?';
+        const apiUrl = `http://export.arxiv.org/api/query?search_query=${encodeURIComponent('all:' + query)}&max_results=${maxResults}`;
+        const url = proxyUrl + encodeURIComponent(apiUrl);
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const xmlText = await response.text();
+        const papers = parseArxivResponse(xmlText);
+        displayPapers(papers, 'proxy-result');
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <p>代理测试失败: ${error.message}</p>
+          <p><strong>注意：</strong>CORS代理可能不稳定或不可用。</p>
+          <p><strong>推荐方法：</strong>使用curl命令或在Zotero错误控制台中测试。</p>
+        `;
+      }
+    }
+
+    function parseArxivResponse(xmlText) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+      const entries = xmlDoc.getElementsByTagName('entry');
+      const papers = [];
+
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        const paper = parseEntry(entry);
+        if (paper) {
+          papers.push(paper);
+        }
+      }
+
+      return papers;
+    }
+
+    function parseEntry(entry) {
+      try {
+        const id = getTextContent(entry, 'id');
+        const arxivId = extractArxivId(id);
+
+        const title = getTextContent(entry, 'title');
+        const summary = getTextContent(entry, 'summary');
+        const published = getTextContent(entry, 'published');
+
+        const authors = parseAuthors(entry);
+        const categories = parseCategories(entry);
+
+        const links = entry.getElementsByTagName('link');
+        let pdfUrl = '';
+        for (let i = 0; i < links.length; i++) {
+          const link = links[i];
+          const type = link.getAttribute('type');
+          const href = link.getAttribute('href');
+          if (type === 'application/pdf' && href) {
+            pdfUrl = href;
+            break;
+          }
+        }
+
+        return {
+          id: arxivId,
+          title: title.trim(),
+          authors,
+          abstract: summary.trim(),
+          published,
+          categories,
+          pdfUrl
+        };
+      } catch (error) {
+        console.error('Error parsing entry:', error);
+        return null;
+      }
+    }
+
+    function parseAuthors(entry) {
+      const authors = [];
+      const authorElements = entry.getElementsByTagName('author');
+
+      for (let i = 0; i < authorElements.length; i++) {
+        const authorElement = authorElements[i];
+        const nameElement = authorElement.getElementsByTagName('name')[0];
+        if (nameElement) {
+          authors.push(nameElement.textContent || '');
+        }
+      }
+
+      return authors;
+    }
+
+    function parseCategories(entry) {
+      const categories = [];
+      const categoryElements = entry.getElementsByTagName('category');
+
+      for (let i = 0; i < categoryElements.length; i++) {
+        const categoryElement = categoryElements[i];
+        const term = categoryElement.getAttribute('term');
+        if (term) {
+          categories.push(term);
+        }
+      }
+
+      return categories;
+    }
+
+    function getTextContent(element, tagName) {
+      const elements = element.getElementsByTagName(tagName);
+      return elements[0]?.textContent || '';
+    }
+
+    function extractArxivId(url) {
+      const match = url.match(/arxiv\.org\/abs\/(\d+\.\d+)/);
+      return match ? match[1] : url;
+    }
+
+    function displayPapers(papers, resultDivId) {
+      const resultDiv = document.getElementById(resultDivId);
+      resultDiv.className = 'result success';
+
+      if (papers.length === 0) {
+        resultDiv.innerHTML = '<p>没有找到文献</p>';
+        return;
+      }
+
+      let html = `<p>找到 ${papers.length} 篇文献：</p>`;
+      papers.forEach((paper, index) => {
+        html += `
+          <div class="paper-item">
+            <div class="paper-title">${index + 1}. ${paper.title}</div>
+            <div class="paper-meta">
+              <strong>作者:</strong> ${paper.authors.join(', ')}<br>
+              <strong>ID:</strong> ${paper.id}<br>
+              <strong>分类:</strong> ${paper.categories.join(', ')}<br>
+              <strong>发布时间:</strong> ${new Date(paper.published).toLocaleString('zh-CN')}<br>
+              <strong>PDF:</strong> <a href="${paper.pdfUrl}" target="_blank">下载</a>
+            </div>
+            <div class="paper-abstract">
+              <strong>摘要:</strong> ${paper.abstract.substring(0, 200)}...
+            </div>
+          </div>
+        `;
+      });
+
+      resultDiv.innerHTML = html;
+    }
+  </script>
+</body>
+
+</html>

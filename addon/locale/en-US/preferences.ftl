@@ -1,0 +1,12 @@
+pref-title = Literature Tracker
+pref-api-section = API Settings
+pref-openai-key = OpenAI API Key
+pref-claude-key = Claude API Key
+pref-website-section = Tracked Websites
+pref-track-arxiv = Track arXiv
+pref-track-pubmed = Track PubMed
+pref-threshold-section = Relevance Settings
+pref-threshold = Relevance Threshold
+pref-shortcut-section = Keyboard Shortcut
+pref-shortcut = Activation Key
+pref-help = { $name } Build { $version } { $time }
