@@ -1,10 +1,10 @@
 {
-  "name": "literature-tracker",
+  "name": "zotero-traffic-literature-push",
   "type": "module",
   "version": "1.0.0",
-  "description": "基于大模型的Zotero文献追踪与推送系统",
+  "description": "基于 Zotero 的交通文献推送",
   "config": {
-    "addonName": "Literature Tracker",
+    "addonName": "基于 Zotero 的交通文献推送",
     "addonID": "literature-tracker@example.com",
     "addonRef": "literature-tracker",
     "addonInstance": "LiteratureTracker",
@@ -12,13 +12,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/yinyanhui0123/-zetero-.git"
   },
-  "author": "windingwind",
+  "author": "yinyanhui0123",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
+    "url": "https://github.com/yinyanhui0123/-zetero-/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "homepage": "https://github.com/yinyanhui0123/-zetero-#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "npx zotero-plugin serve",

@@ -1,4 +1,4 @@
-# Literature Tracker（文献追踪与推荐）
+# 基于 Zotero 的交通文献推送
 
 ## 项目简介
 
