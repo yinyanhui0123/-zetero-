@@ -6,6 +6,15 @@
 
 本分支额外实现了 **Elsevier / Scopus 交通期刊邮件推送**：每天早上 7 点自动检索与“城际出行、多层网络、交通可达性”等方向相关的论文，并按目标交通期刊白名单过滤后，通过 SMTP 发送到指定邮箱。当前默认聚焦 Transportation Research Part A/B/C/D/E、IEEE TITS、Transport Policy、Travel Behaviour and Society 等交通方向期刊。
 
+## 参考项目与致谢
+
+本项目是在以下开源项目基础上学习、整理和二次开发的：
+
+- 原始参考项目：[Zhiwx1526/Zotero-Tracker](https://github.com/Zhiwx1526/Zotero-Tracker)
+- Zotero 插件脚手架参考：[windingwind/zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)
+
+本仓库在参考项目的 Zotero 文献追踪与推荐能力基础上，进一步补充了 Elsevier/Scopus 检索、交通期刊白名单过滤、QQ/163 SMTP 邮件推送、Windows 每日定时任务、以及面向“城际出行 / 多层网络 / 交通可达性”等研究方向的默认检索配置。
+
 ## 核心功能
 
 1. **用户兴趣画像**：支持两种模式——**关键词模式**（默认，无 API、秒级构建）与**向量模式**（需 API、更准）
