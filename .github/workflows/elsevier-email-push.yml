@@ -5,6 +5,16 @@ on:
     # GitHub Actions uses UTC. 23:00 UTC is 07:00 in Asia/Shanghai.
     - cron: "0 23 * * *"
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        default: "send"
+        type: choice
+        options:
+          - send
+          - dry-run
+          - record-only
 
 jobs:
   send-email:
@@ -50,5 +60,14 @@ jobs:
       - name: Prepare cache directory
         run: mkdir -p .cache
 
-      - name: Send Elsevier paper digest
-        run: python python/elsevier_email_push.py
+      - name: Run Elsevier paper digest
+        env:
+          RUN_MODE: ${{ github.event.inputs.mode || 'send' }}
+        run: |
+          if [ "$RUN_MODE" = "dry-run" ]; then
+            python python/elsevier_email_push.py --dry-run
+          elif [ "$RUN_MODE" = "record-only" ]; then
+            python python/elsevier_email_push.py --record-only
+          else
+            python python/elsevier_email_push.py
+          fi

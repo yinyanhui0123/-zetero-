@@ -108,6 +108,8 @@ GitHub 仓库 -> Settings -> Secrets and variables -> Actions -> New repository 
 
 GitHub Actions 使用 UTC 时间，工作流中的 `0 23 * * *` 对应北京时间每天 07:00。GitHub 的定时任务可能有几分钟延迟，这是平台正常行为。
 
+如果你之前已经在本地发送过邮件，建议在 GitHub Secrets 配好后先手动运行一次工作流，并选择 `record-only` 模式。该模式只记录当前候选论文为已发送，不会发送邮件，可用于初始化 GitHub Actions 的去重历史。
+
 ### 4. 避免重复推送
 
 脚本会把已成功发送的论文记录到：
